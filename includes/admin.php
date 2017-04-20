@@ -92,7 +92,6 @@ class BP_bbP_ST_Admin {
 		// At a glance Dashboard widget
 		add_action( 'bbp_dashboard_at_a_glance',                array( $this, 'dashboard_at_a_glance' ),        10, 2 );
 
-		// Add settings section and fields
 		add_filter( 'bbp_admin_get_settings_sections',  				array( $this, 'add_setting_section' ), 					10, 2 );
 		add_filter( 'bbp_admin_get_settings_fields', 						array( $this, 'admin_setting_settings' ), 			10, 2 );
 		add_filter( 'bbp_map_settings_meta_caps', 							array( $this, 'admin_add_permissions' ) , 			10, 4 );

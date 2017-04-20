@@ -809,11 +809,9 @@ function bpbbpst_get_selectbox( $support_status = 1, $topic_id = 0 ) {
 	// nonce field
 	if ( $topic_id != 'adminlist' ) {
 		$output .= wp_nonce_field( 'bpbbpst_support_status', '_wpnonce_bpbbpst_support_status', true, false );
-		// AJAX Submissions disable
+
 		if ( ! is_admin() ) {
 			$output .= '<button type="submit" id="bpbbpst-submit-change-status" class="button">Change</button>';
-		}
-		if( ! is_admin() ) {
 			$output .= '</form>';
 		}
 	}
