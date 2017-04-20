@@ -91,6 +91,12 @@ class BP_bbP_ST_Admin {
 
 		// At a glance Dashboard widget
 		add_action( 'bbp_dashboard_at_a_glance',                array( $this, 'dashboard_at_a_glance' ),        10, 2 );
+
+		// Add settings section and fields
+		add_filter( 'bbp_admin_get_settings_sections',  				array( $this, 'add_setting_section' ), 					10, 2 );
+		add_filter( 'bbp_admin_get_settings_fields', 						array( $this, 'admin_setting_settings' ), 			10, 2 );
+		add_filter( 'bbp_map_settings_meta_caps', 							array( $this, 'admin_add_permissions' ) , 			10, 4 );
+
 	}
 
 	/**
@@ -1049,6 +1055,92 @@ class BP_bbP_ST_Admin {
 			'about'    => '<a href="' . add_query_arg( array( 'page' => 'bpbbst-about' ), admin_url( 'index.php' ) ) . '">' . esc_html__( 'About', 'buddy-bbpress-support-topic' ) . '</a>'
 		) );
 
+	}
+
+	/**
+	 * Register bbpress settings section
+	 *
+	 * @since 	2.1.5
+	 *
+	 * @param 	array $sections array of bbpress settings sections
+	 * @return 	array
+	 */
+	public function add_setting_section( $sections ) {
+		$sections['bpbbst_settings'] = array(
+					'title'    => 'Buddy-bbPress Support Topic',
+					'callback' => array( $this, 'admin_setting_section_header' ),
+					'page' 		 => 'bbpress',
+				);
+		return $sections;
+	}
+
+	/**
+	 * Callback for settings section description
+	 *
+	 * @since 	2.1.5
+	 */
+	public function admin_setting_section_header() {
+	?>
+
+		<p><?php esc_html_e( 'Settings for Buddy-bbPress Support Topic', 'buddy-bbpress-support-topic' ); ?></p>
+
+	<?php
+	}
+
+	/**
+	 * Register bbpress settings fields
+	 *
+	 * @since 	2.1.5
+	 *
+	 * @param 	array $settings array of fields
+	 * @return 	array
+	 */
+	public function admin_setting_settings( $settings )	{
+		$settings['bpbbst_settings'] = array (
+			'_bbp_support_topic_toggleajax' => array(
+				'title'             => __( 'AJAX Submissions', 'buddy-bbpress-support-topic' ),
+				'callback'          =>  array( $this, 'admin_setting_settings_toggle_ajax' ),
+				'sanitize_callback' => 'intval',
+				'args'              => array()
+			),
+		);
+		return $settings;
+	}
+
+	/**
+	 * Output toggle AJAX checkbox
+	 *
+	 * @since 	2.1.5
+	 */
+	public function admin_setting_settings_toggle_ajax() {
+		$value = $this->check_enabled_field( '_bbp_support_topic_toggleajax', false );
+	?>
+		<input id="_bbp_support_topic_toggleajax" type="checkbox" name="_bbp_support_topic_toggleajax" value="1"<?php checked( $value ); bbp_maybe_admin_setting_disabled( '_bbp_support_topic_toggleajax' ); ?> />
+		<label for="_bbp_support_topic_toggleajax"><?php esc_html_e( 'Disable AJAX submissions in front.', 'buddy-bbpress-support-topic' ); ?></label>
+	<?php
+	}
+
+	/**
+	 * Add admin permissions
+	 *
+	 * @since 	2.1.5
+	 */
+	public function admin_add_permissions( $caps, $cap, $user_id, $args ) {
+		if ($cap == 'bpbbst_settings') {
+				$caps = array( bbpress()->admin->minimum_capability );
+		}
+		return $caps;
+	}
+
+	/**
+	 * This checks the value of a checkbox.
+	 *
+	 * @since 	2.1.5
+	 *
+	 * @return string
+	 */
+	public function check_enabled_field( $value, $default = true ) {
+		return (bool) get_option( $value, $default );
 	}
 
 }

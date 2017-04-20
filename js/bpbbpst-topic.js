@@ -1,10 +1,12 @@
 ( function ( $ ) {
 
+	$( '#bpbbpst-submit-change-status' ).hide();
+
 	$( 'body' ).on( 'change', '.support-select-status', function( event ) {
 		var self = event.target;
 		var data = {
 			'topic_id'                       : $( self ).data( 'topicsupport' ) || 0,
-			'support_status'                 : $( self ).val(),
+			'_support_status'                 : $( self ).val(),
 			'selectedIndex'                  : self.selectedIndex || 0,
 			'_wpnonce_bpbbpst_support_status': $( self ).parent().find( '#_wpnonce_bpbbpst_support_status' ).val() || '',
 		};
@@ -40,7 +42,7 @@
 				$( self ).trigger( 'bpbbpstStatusChangeSuccess', data );
 				wp.a11y.speak( bpbbpstbbp_vars.statusChangeSuccess );
 
-				$( '.bbp-st-topic-support' ).html( bpbbpstbbp_vars.supportStatus[data.support_status] );
+				$( '.bbp-st-topic-support' ).html( bpbbpstbbp_vars.supportStatus[data._support_status] );
 
 			} else {
 				// Trigger an event to inform Plugins the Ajax request failed

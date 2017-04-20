@@ -185,6 +185,9 @@ class BP_bbP_Support_Topic {
 		// catching ajax status changes
 		add_action( 'wp_ajax_bbp_change_support_status',          'bpbbpst_change_support_status'                );
 
+		// No JS status changes
+		add_action( 'admin_post_bbp_change_support_status',       'bpbbpst_change_support_status'                );
+
 		// adding support mention before topic titles in loops
 		add_action( 'bbp_theme_before_topic_title',               'bpbbpst_add_support_mention'                  );
 

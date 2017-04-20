@@ -314,8 +314,10 @@ function bpbbpst_save_support_type( $topic_id = 0 ) {
  * @uses   update_post_meta() to set the support status to support request
  */
 function bpbbpst_admin_save_support_type( $topic_id = 0 ) {
-	if ( ! empty( $_POST['parent_id'] ) && 2 == bpbbpst_get_forum_support_setting( $_POST['parent_id'] ) && wp_verify_nonce( $_POST['_wpnonce_bpbbpst_support_define'], 'bpbbpst_support_define' ) )  {
-		update_post_meta( $topic_id, '_bpbbpst_support_topic', 1 );
+	if( isset( $_POST['_wpnonce_bpbbpst_support_define'] ) ) {
+		if ( ! empty( $_POST['parent_id'] ) && 2 == bpbbpst_get_forum_support_setting( $_POST['parent_id'] ) && wp_verify_nonce( $_POST['_wpnonce_bpbbpst_support_define'], 'bpbbpst_support_define' ) )  {
+			update_post_meta( $topic_id, '_bpbbpst_support_topic', 1 );
+		}
 	}
 }
 
@@ -455,7 +457,7 @@ function bpbbpst_enqueue_scripts() {
 		$bbpress_load_scripts = true;
 	}
 
-	if ( $bbpress_load_scripts ) {
+	if ( $bbpress_load_scripts && '1' != get_option( '_bbp_support_topic_toggleajax' ) ) {
 		wp_enqueue_script( 'bpbbpst-topic-js', bpbbpst_get_plugin_url( 'js' ) . 'bpbbpst-topic.js', array( 'jquery' ), bpbbpst_get_plugin_version(), true );
 		wp_localize_script( 'bpbbpst-topic-js', 'bpbbpstbbp_vars', array(
 			'securitycheck' 			=> __( 'Security check failed', 'buddy-bbpress-support-topic' ),
@@ -491,15 +493,18 @@ function bpbbpst_change_support_status() {
 
 	if ( ! empty( $_POST['topic_id'] ) ) {
 
-		if ( empty( $_POST['support_status'] ) ) {
+		if ( empty( $_POST['_support_status'] ) ) {
 			delete_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic' );
 		} else {
-			update_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic', intval( $_POST['support_status'] ) );
+			update_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic', intval( $_POST['_support_status'] ) );
 		}
-		echo 1;
+		if ( !defined( 'DOING_AJAX' ) ) {
+			wp_safe_redirect( wp_get_referer() );
+		}
 	} else {
 		echo 0;
 	}
+
 	die();
 }
 
@@ -778,40 +783,41 @@ function bpbbpst_get_selectbox( $support_status = 1, $topic_id = 0 ) {
 	if ( empty( $topic_id ) ) {
 		return;
 	}
-
 	$all_status = bpbbpst_get_support_status();
-
 	if ( empty( $all_status ) || ! is_array( $all_status ) ) {
 		return;
 	}
-
 	$output = '<span class="support-select-box">';
+	if ( $topic_id != 'adminlist' && ! is_admin() ) {
+		$output .= '<form action="' . admin_url( 'admin-post.php' ) . '" method="post" style="display: inline-block;">';
+		$output .= '<input type="hidden" name="action" value="bbp_change_support_status">';
+		$output .= '<input type="hidden" name="topic_id" value="' .  $topic_id  . '">';
+	}
 	$output .= '<select class="support-select-status" name="_support_status" data-topicsupport="'.$topic_id.'">';
-
 	if ( $topic_id == 'adminlist' ) {
 		$output .= '<option value="-1">' . __( 'All support status', 'buddy-bbpress-support-topic' ) .'</option>';
 	}
-
 	foreach ( $all_status as $status ) {
-
 		if ( $topic_id == 'adminlist' && $status['value'] == 0 ) {
 			continue;
 		}
-
 		$output .= '<option value="'. $status['value'] .'" ';
 		$output .= selected( $support_status, $status['value'], false );
 		$output .= '>'. $status['sb-caption'] .'</option>';
 	}
-
 	$output .= '</select>';
-
 	// nonce field
 	if ( $topic_id != 'adminlist' ) {
 		$output .= wp_nonce_field( 'bpbbpst_support_status', '_wpnonce_bpbbpst_support_status', true, false );
+		// AJAX Submissions disable
+		if ( ! is_admin() ) {
+			$output .= '<button type="submit" id="bpbbpst-submit-change-status" class="button">Change</button>';
+		}
+		if( ! is_admin() ) {
+			$output .= '</form>';
+		}
 	}
-
 	$output .= '</span>';
-
 	return apply_filters( 'bpbbpst_get_selectbox', $output, $support_status, $topic_id );
 
 }
