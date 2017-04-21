@@ -1059,7 +1059,7 @@ class BP_bbP_ST_Admin {
 	/**
 	 * Register bbpress settings section
 	 *
-	 * @since 	2.1.5
+	 * @since 	2.2.0
 	 *
 	 * @param 	array $sections array of bbpress settings sections
 	 * @return 	array
@@ -1076,7 +1076,7 @@ class BP_bbP_ST_Admin {
 	/**
 	 * Callback for settings section description
 	 *
-	 * @since 	2.1.5
+	 * @since 	2.2.0
 	 */
 	public function admin_setting_section_header() {
 	?>
@@ -1089,7 +1089,7 @@ class BP_bbP_ST_Admin {
 	/**
 	 * Register bbpress settings fields
 	 *
-	 * @since 	2.1.5
+	 * @since 	2.2.0
 	 *
 	 * @param 	array $settings array of fields
 	 * @return 	array
@@ -1102,6 +1102,12 @@ class BP_bbP_ST_Admin {
 				'sanitize_callback' => 'intval',
 				'args'              => array()
 			),
+			'_bbp_support_topic_closetopic' => array(
+				'title'             => __( 'Auto Close Topic', 'buddy-bbpress-support-topic' ),
+				'callback'          =>  array( $this, 'admin_setting_settings_close_topic' ),
+				'sanitize_callback' => 'intval',
+				'args'              => array()
+			),
 		);
 		return $settings;
 	}
@@ -1109,7 +1115,7 @@ class BP_bbP_ST_Admin {
 	/**
 	 * Output toggle AJAX checkbox
 	 *
-	 * @since 	2.1.5
+	 * @since 	2.2.0
 	 */
 	public function admin_setting_settings_toggle_ajax() {
 		$value = $this->check_enabled_field( '_bbp_support_topic_toggleajax', false );
@@ -1120,9 +1126,22 @@ class BP_bbP_ST_Admin {
 	}
 
 	/**
+	 * Output Close Topic checkbox
+	 *
+	 * @since 	2.2.0
+	 */
+	public function admin_setting_settings_close_topic() {
+		$value = $this->check_enabled_field( '_bbp_support_topic_closetopic', false );
+	?>
+		<input id="_bbp_support_topic_closetopic" type="checkbox" name="_bbp_support_topic_closetopic" value="1"<?php checked( $value ); bbp_maybe_admin_setting_disabled( '_bbp_support_topic_closetopic' ); ?> />
+		<label for="_bbp_support_topic_closetopic"><?php esc_html_e( 'Auto close topic when mark as resolved.', 'buddy-bbpress-support-topic' ); ?></label>
+	<?php
+	}
+
+	/**
 	 * Add admin permissions
 	 *
-	 * @since 	2.1.5
+	 * @since 	2.2.0
 	 */
 	public function admin_add_permissions( $caps, $cap, $user_id, $args ) {
 		if ($cap == 'bpbbst_settings') {
@@ -1134,7 +1153,7 @@ class BP_bbP_ST_Admin {
 	/**
 	 * This checks the value of a checkbox.
 	 *
-	 * @since 	2.1.5
+	 * @since 	2.2.0
 	 *
 	 * @return string
 	 */

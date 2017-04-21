@@ -497,6 +497,9 @@ function bpbbpst_change_support_status() {
 			delete_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic' );
 		} else {
 			update_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic', intval( $_POST['_support_status'] ) );
+			if( '1' == get_option( '_bbp_support_topic_closetopic' ) ) {
+				bbp_close_topic( $_POST['topic_id'] );
+			}
 		}
 		if ( !defined( 'DOING_AJAX' ) ) {
 			wp_safe_redirect( wp_get_referer() );
