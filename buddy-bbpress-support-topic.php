@@ -199,12 +199,15 @@ class BP_bbP_Support_Topic {
 		add_action( 'bbp_theme_before_reply_content',             'bpbbpst_display_referer_to_moderators'        );
 
 		// Register the widgets
-		add_action( 'bbp_widgets_init', array( 'Bpbbpst_Support_Stats', 'register_widget' ),       10 );
-		add_action( 'bbp_widgets_init', array( 'Bpbbpst_Support_New_Support', 'register_widget' ), 10 );
+		add_action( 'bbp_widgets_init', array( 'Bpbbpst_Support_Stats', 'register_widget' ),       						10 );
+		add_action( 'bbp_widgets_init', array( 'Bpbbpst_Support_New_Support', 'register_widget' ), 						10 );
 
 		// Neutralize title filter in Sidebar
-		add_action( 'dynamic_sidebar_before', 'bpbbpst_set_sidebar_true'  );
-		add_action( 'dynamic_sidebar_after',  'bpbbpst_set_sidebar_false' );
+		add_action( 'dynamic_sidebar_before', 'bpbbpst_set_sidebar_true'  																			 );
+		add_action( 'dynamic_sidebar_after',  'bpbbpst_set_sidebar_false' 																			 );
+
+		// Best Answer save status
+		add_action( 'admin_post_bpbbpst_toggle_bestanswer',       'bpbbpst_toggle_reply_bestanswer'        );
 
 		do_action_ref_array( 'bpbbpst_after_setup_actions', array( &$this ) );
 	}
@@ -260,6 +263,9 @@ class BP_bbP_Support_Topic {
 
 		// Displays the support status selectbox in topic front admin links
 		add_filter( 'bbp_get_topic_admin_links', 'bpbbpst_support_admin_links', 10, 2 );
+
+		// Displays the best answer link in reply front admin links
+		add_filter( 'bbp_get_reply_admin_links', 'bpbbpst_bestanswer_admin_links', 10, 3 );
 
 		// in case a forum is set as a support only one strip the not a support question status
 		add_filter( 'bpbbpst_get_support_status', 'bpbbpst_neutralize_not_support', 1, 1 );

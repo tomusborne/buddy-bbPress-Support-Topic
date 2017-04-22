@@ -1527,3 +1527,130 @@ function bpbbpst_reply_save_support_type( $reply_id = 0 ) {
 		update_post_meta( $topic_id, '_bpbbpst_support_topic', 2 );
 	}
 }
+
+/**
+ * Hooks bbp_get_reply_admin_links to eventually add the selectbox of available support status
+ *
+ * @since  2.0
+ *
+ * @param  string $input the html containing bbPress admin links
+ * @param  array $args the array containing eventual args
+ * @uses   bbp_is_single_topic() to return input if not on single topic
+ * @uses   bbp_get_topic_id() to get the topic id
+ * @uses   bbp_parse_args() to merge user defined arguments into defaults array
+ * @uses   bbp_get_topic_forum_id() to get parent forum id
+ * @uses   bpbbpst_get_forum_support_setting() to check for parent forum support setting
+ * @uses   current_user_can() to check user capacity to edit the topic
+ * @uses   get_post_meta() to get the stored status if it exists
+ * @uses   bpbbpst_get_selectbox() to get the selectbox of available status
+ * @uses   apply_filters() to call the 'bpbbpst_support_admin_links' hook
+ * @return string $input or the input with the selectbox
+ */
+function bpbbpst_bestanswer_admin_links( $retval, $r, $args ) {
+
+		$best_answer_link = '';
+
+		$r = bbp_parse_args( $args, array(
+			'id'     => 0,
+			'before' => '<span class="bbp-admin-links">',
+			'after'  => '</span>',
+			'sep'    => ' | ',
+			'links'  => array()
+		), 'get_reply_admin_links' );
+
+		$r['id'] = bbp_get_reply_id( (int) $r['id'] );
+
+		if ( bpbbpst_topic_as_bestanswer( $r['id'] ) ) {
+
+			if ( bpbbpst_is_reply_bestanswer( $r['id'] ) ) {
+				$best_answer_link = bpbbpst_get_reply_bestanswer_link( $r['id'], $action = 'remove_bestanswer_text' ) . $r['sep'];
+			}
+
+		} else {
+			$best_answer_link = bpbbpst_get_reply_bestanswer_link( $r['id'], $action = 'bestanswer_text' ) . $r['sep'];
+		}
+
+		$new_span = str_replace( $r['before'], $r['before'] . $best_answer_link, $retval );
+		return $new_span;
+}
+
+function bpbbpst_get_reply_bestanswer_link( $reply_id, $action = '' , $args = '' ) {
+
+	// Parse arguments against default values
+	$r = bbp_parse_args( $args, array(
+		'id'           => $reply_id,
+		'link_before'  => '',
+		'link_after'   => '',
+		'sep'          => ' | ',
+		'bestanswer_text'   			=> esc_html__( 'Best Answer',  			 'buddy-bbpress-support-topic' ),
+		'remove_bestanswer_text' 	=> esc_html__( 'Remove Best Answer', 'buddy-bbpress-support-topic' )
+	), 'get_reply_bestanswer_link' );
+
+	$reply   = bbp_get_reply( bbp_get_reply_id( (int) $r['id'] ) );
+
+	if ( empty( $reply ) || !current_user_can( 'moderate', $reply->ID ) ) {
+		return;
+	}
+
+	switch ( $action ) {
+		case 'remove_bestanswer_text':
+			$display = $r['remove_bestanswer_text'];
+			break;
+
+		case 'bestanswer_text':
+			$display = $r['bestanswer_text'];
+			break;
+	}
+
+	$output  = '<form action="' . admin_url( 'admin-post.php' ) . '" method="post" style="display: inline-block;">';
+	$output .= '<input type="hidden" name="action" value="bpbbpst_toggle_bestanswer">';
+	$output .= '<input type="hidden" name="reply_id" value="' .  $reply->ID  . '">';
+	$output .= '<button type="submit">' . $display . '</button>';
+	$output	.= '</form>';
+
+	$retval   = $r['link_before'] . $output . $r['link_after'];
+
+
+	return apply_filters( 'bpbbpst_get_reply_bestanswer_link', $retval, $r );
+}
+
+function bpbbpst_is_reply_bestanswer( $reply_id ) {
+
+	$topic_id = bbp_get_reply_topic_id( $reply_id );
+	if ( get_post_meta( $topic_id, '_bpbbpst_topic_bestanswer' ) && $reply_id == get_post_meta( $topic_id, '_bpbbpst_topic_bestanswer', true ) ) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+function bpbbpst_topic_as_bestanswer( $reply_id ) {
+
+	$topic_id = bbp_get_reply_topic_id( $reply_id );
+	if ( get_post_meta( $topic_id, '_bpbbpst_topic_bestanswer' ) ) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+function bpbbpst_toggle_reply_bestanswer() {
+
+	if ( empty( $_POST['reply_id'] ) ) {
+		return;
+	}
+
+	$reply_id  = (int) $_POST['reply_id'];    // What's the reply id?
+	$topic_id = bbp_get_reply_topic_id( $reply_id );
+
+	if( bpbbpst_is_reply_bestanswer( $reply_id ) ) {
+		delete_post_meta( $topic_id, '_bpbbpst_topic_bestanswer' );
+		wp_safe_redirect( wp_get_referer() );
+	} else {
+		add_post_meta( $topic_id, '_bpbbpst_topic_bestanswer', $reply_id );
+		wp_safe_redirect( wp_get_referer() );
+	}
+
+}

@@ -1108,6 +1108,12 @@ class BP_bbP_ST_Admin {
 				'sanitize_callback' => 'intval',
 				'args'              => array()
 			),
+			'_bbp_support_topic_bestanswer' => array(
+				'title'             => __( 'Best Answer', 'buddy-bbpress-support-topic' ),
+				'callback'          =>  array( $this, 'admin_setting_settings_best_answer' ),
+				'sanitize_callback' => 'intval',
+				'args'              => array()
+			),
 		);
 		return $settings;
 	}
@@ -1135,6 +1141,19 @@ class BP_bbP_ST_Admin {
 	?>
 		<input id="_bbp_support_topic_closetopic" type="checkbox" name="_bbp_support_topic_closetopic" value="1"<?php checked( $value ); bbp_maybe_admin_setting_disabled( '_bbp_support_topic_closetopic' ); ?> />
 		<label for="_bbp_support_topic_closetopic"><?php esc_html_e( 'Auto close topic when mark as resolved.', 'buddy-bbpress-support-topic' ); ?></label>
+	<?php
+	}
+
+	/**
+	 * Output Best Answer checkbox
+	 *
+	 * @since 	2.2.0
+	 */
+	public function admin_setting_settings_best_answer() {
+		$value = $this->check_enabled_field( '_bbp_support_topic_bestanswer', false );
+	?>
+		<input id="_bbp_support_topic_bestanswer" type="checkbox" name="_bbp_support_topic_bestanswer" value="1"<?php checked( $value ); bbp_maybe_admin_setting_disabled( '_bbp_support_topic_bestanswer' ); ?> />
+		<label for="_bbp_support_topic_bestanswer"><?php esc_html_e( 'Allow topic author to mark reply as best answer.', 'buddy-bbpress-support-topic' ); ?></label>
 	<?php
 	}
 
