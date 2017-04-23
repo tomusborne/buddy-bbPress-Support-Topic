@@ -1529,22 +1529,19 @@ function bpbbpst_reply_save_support_type( $reply_id = 0 ) {
 }
 
 /**
- * Hooks bbp_get_reply_admin_links to eventually add the selectbox of available support status
+ * Hooks bbp_get_reply_admin_links to eventually add best answer button
  *
- * @since  2.0
+ * @since  2.2
  *
  * @param  string $input the html containing bbPress admin links
  * @param  array $args the array containing eventual args
- * @uses   bbp_is_single_topic() to return input if not on single topic
+ *
  * @uses   bbp_get_topic_id() to get the topic id
  * @uses   bbp_parse_args() to merge user defined arguments into defaults array
- * @uses   bbp_get_topic_forum_id() to get parent forum id
- * @uses   bpbbpst_get_forum_support_setting() to check for parent forum support setting
- * @uses   current_user_can() to check user capacity to edit the topic
- * @uses   get_post_meta() to get the stored status if it exists
- * @uses   bpbbpst_get_selectbox() to get the selectbox of available status
- * @uses   apply_filters() to call the 'bpbbpst_support_admin_links' hook
- * @return string $input or the input with the selectbox
+ * @uses   bpbbpst_topic_as_bestanswer() to check if topic as a best answer
+ * @uses   bpbbpst_get_reply_bestanswer_link() to get the best answer button
+ *
+ * @return string $new_span for the input with the admin links
  */
 function bpbbpst_bestanswer_admin_links( $retval, $r, $args ) {
 
@@ -1574,6 +1571,24 @@ function bpbbpst_bestanswer_admin_links( $retval, $r, $args ) {
 		return $new_span;
 }
 
+/**
+ * Display the best answer button
+ *
+ * @since  2.2
+ *
+ * @param  int $reply_id the reply ID
+ * @param  string $action the action to display
+ * @param  array $args the array containing eventual args
+ *
+ * @uses   bbp_get_reply_id to get the reply id
+ * @uses   bbp_get_reply to get the reply object
+ * @uses   bbp_parse_args() to merge user defined arguments into defaults array
+ * @uses   current_user_can() to check if the current user can moderate the reply
+ * @uses   esc_url() escape url
+ * @uses   admin_url() get the admin url
+ *
+ * @return string $retval for the form
+ */
 function bpbbpst_get_reply_bestanswer_link( $reply_id, $action = '' , $args = '' ) {
 
 	// Parse arguments against default values
@@ -1602,10 +1617,10 @@ function bpbbpst_get_reply_bestanswer_link( $reply_id, $action = '' , $args = ''
 			break;
 	}
 
-	$output  = '<form action="' . admin_url( 'admin-post.php' ) . '" method="post" style="display: inline-block;">';
+	$output  = '<form action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" method="post" id="bpbbpst-bestanswer-form" class="bpbbpst-bestanswer-form" style="display: inline-block;">';
 	$output .= '<input type="hidden" name="action" value="bpbbpst_toggle_bestanswer">';
 	$output .= '<input type="hidden" name="reply_id" value="' .  $reply->ID  . '">';
-	$output .= '<button type="submit">' . $display . '</button>';
+	$output .= '<button type="submit" class="bpbbpst-bestanswer-button">' . $display . '</button>';
 	$output	.= '</form>';
 
 	$retval   = $r['link_before'] . $output . $r['link_after'];
@@ -1614,6 +1629,18 @@ function bpbbpst_get_reply_bestanswer_link( $reply_id, $action = '' , $args = ''
 	return apply_filters( 'bpbbpst_get_reply_bestanswer_link', $retval, $r );
 }
 
+/**
+ * Check if the reply is the best answer
+ *
+ * @since 	2.2
+ *
+ * @param		int  $reply_id the reply ID
+ *
+ * @uses		bbp_get_reply_topic_id() to get the topic ID
+ * @uses		get_post_meta() to get the post meta _bpbbpst_topic_bestanswer
+ *
+ * @return	boolean	true if is the best answer
+ */
 function bpbbpst_is_reply_bestanswer( $reply_id ) {
 
 	$topic_id = bbp_get_reply_topic_id( $reply_id );
@@ -1625,17 +1652,39 @@ function bpbbpst_is_reply_bestanswer( $reply_id ) {
 
 }
 
+/**
+ * Check if the topic as a best answer
+ *
+ * @since 	2.2
+ *
+ * @param		int  $reply_id the reply ID
+ *
+ * @uses		bbp_get_reply_topic_id() to get the topic ID
+ * @uses		get_post_meta() to get the post meta _bpbbpst_topic_bestanswer
+ *
+ * @return	boolean	true if is the best answer
+ */
 function bpbbpst_topic_as_bestanswer( $reply_id ) {
 
 	$topic_id = bbp_get_reply_topic_id( $reply_id );
+
 	if ( get_post_meta( $topic_id, '_bpbbpst_topic_bestanswer' ) ) {
 		return true;
 	} else {
 		return false;
 	}
-
 }
 
+/**
+ * Toggle the reply best answer status
+ *
+ * @since 	2.2
+ *
+ * @uses		bbp_get_reply_topic_id() to get the topic ID
+ * @uses		bpbbpst_is_reply_bestanswer() check if reply is the best answer
+ * @uses		add_post_meta() add the post meta _bpbbpst_topic_bestanswer
+ * @uses		delete_post_meta() delete the post meta _bpbbpst_topic_bestanswer
+ */
 function bpbbpst_toggle_reply_bestanswer() {
 
 	if ( empty( $_POST['reply_id'] ) ) {
@@ -1652,5 +1701,26 @@ function bpbbpst_toggle_reply_bestanswer() {
 		add_post_meta( $topic_id, '_bpbbpst_topic_bestanswer', $reply_id );
 		wp_safe_redirect( wp_get_referer() );
 	}
+}
 
+
+/**
+ * Add the bpbbpst-best-answer CSS classe to the reply
+ *
+ * @since 	2.2
+ *
+ * @param		array $classes 		a array with CSS classes
+ * @param		int   $reply_id	 	the reply ID
+ *
+ * @uses		bbp_get_reply_id() to get the reply ID
+ * @uses		bpbbpst_is_reply_bestanswer() check if reply is the best answer
+ *
+ * @return  array $classes a array with CSS classes
+ */
+function bpbbpst_reply_best_answer_class( $classes, $reply_id = 0 ) {
+	$reply_id = bbp_get_reply_id( $reply_id );
+	if( bpbbpst_is_reply_bestanswer( $reply_id ) ) {
+		$classes[] = 'bpbbpst_bestanswer';
+	}
+	return $classes;
 }

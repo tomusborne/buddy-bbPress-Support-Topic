@@ -275,6 +275,8 @@ class BP_bbP_Support_Topic {
 
 		// Use a specific topic template for support only forums
 		add_filter( 'bbp_get_form_topic_content', 'bpbbpst_support_topic_template', 100, 1 );
+
+		add_filter( 'bbp_get_reply_class', 'bpbbpst_reply_best_answer_class' );
 	}
 
 	/**
