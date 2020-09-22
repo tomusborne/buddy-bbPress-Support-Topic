@@ -57,7 +57,7 @@ class BP_bbP_ST_Admin {
 		}
 
 		// forums metabox
-		add_action( 'bbp_forum_attributes_metabox',             array( $this, 'forum_meta_box_register' ),      10    );
+		add_action( 'add_meta_boxes',                           array( $this, 'forum_meta_box_register'),       10, 1 );
 		add_action( 'bbp_forum_attributes_metabox_save',        array( $this, 'forum_meta_box_save' ),          10, 1 );
 
 		// Action to edit users query to only get forum moderators ( Keymasters+moderators )
