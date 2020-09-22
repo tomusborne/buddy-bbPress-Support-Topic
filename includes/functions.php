@@ -779,6 +779,10 @@ function bpbbpst_get_selectbox( $support_status = 1, $topic_id = 0 ) {
 		return;
 	}
 
+	if ( is_object( $topic_id ) ) {
+		$topic_id = $topic_id->ID;
+	}
+
 	$all_status = bpbbpst_get_support_status();
 
 	if ( empty( $all_status ) || ! is_array( $all_status ) ) {
