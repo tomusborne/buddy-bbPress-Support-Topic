@@ -495,6 +495,10 @@ function bpbbpst_change_support_status() {
 			delete_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic' );
 		} else {
 			update_post_meta( $_POST['topic_id'], '_bpbbpst_support_topic', intval( $_POST['support_status'] ) );
+
+			if ( 2 === (int) $_POST['support_status'] ) {
+				do_action( 'bpbbpst_after_marked_resolved', intval( $_POST['topic_id'] ) );
+			}
 		}
 		echo 1;
 	} else {
@@ -1522,5 +1526,7 @@ function bpbbpst_reply_save_support_type( $reply_id = 0 ) {
 	// Finally mark the support topic as resolved
 	if ( ! empty( $topic_id ) ) {
 		update_post_meta( $topic_id, '_bpbbpst_support_topic', 2 );
+
+		do_action( 'bpbbpst_after_marked_resolved', $topic_id );
 	}
 }
